@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 
+import { AsyncStorage } from "react-native";
+
 export default class InstaluraFetchService {
   static get(recurso) {
     const uri = `https://instalura-api.herokuapp.com/api` + recurso;
@@ -33,6 +35,9 @@ export default class InstaluraFetchService {
         };
       })
       .then(requestInfo => fetch(uri, requestInfo))
-      .then(resposta => resposta.json);
+      .then(resposta => {
+        if (resposta.ok) return resposta.json();
+        throw new Error("Não foi possível completar a operação");
+      });
   }
 }
