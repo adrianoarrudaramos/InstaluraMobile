@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Button, AsyncStorage, View } from "react-native";
 import { Dimensions } from "react-native";
 
 import Post from "./Post";
+import InstaluraFetchService from "../service/InstaluraFetchService";
 
 const width = Dimensions.get("screen").width;
 
@@ -17,13 +18,9 @@ export default class Feed extends Component {
   componentDidMount() {
     const uri = "https://instalura-api.herokuapp.com/api/fotos";
 
-    //fetch("http://instalura-api.herokuapp.com/api/public/fotos/rafael")
-    //  .then(resposta => resposta.json())
-    //  .then(json => this.setState({ fotos: json }));
-    //this.props.navigator.showModal({
-    //  screen: "AluraLingua",
-    //  title: "ALuraLingua"
-    //});
+    InstaluraFetchService.get("/fotos").then(json =>
+      this.setState({ fotos: json })
+    );
 
     AsyncStorage.getItem("token")
       .then(token => {
@@ -41,7 +38,6 @@ export default class Feed extends Component {
       });
   }
 
-  // like = (idFoto) => {
   like = async idFoto => {
     const foto = this.buscaPorId(idFoto);
 
@@ -94,6 +90,42 @@ export default class Feed extends Component {
     });
   };
 
+  adicionaComentario = (idFoto, valorComentario, inputComentario) => {
+    if (!valorComentario) return;
+    const foto = this.buscaPorId(idFoto);
+
+    const uri = `https://instalura-api.herokuapp.com/api/fotos/${idFoto}/comment`;
+
+    AsyncStorage.getItem("token")
+      .then(token => {
+        return {
+          method: "POST",
+          body: JSON.stringify({
+            texto: valorComentario
+          }),
+          headers: new Headers({
+            "Content-type": "application/json",
+            "X-AUTH-TOKEN": token
+          })
+        };
+      })
+      .then(requestInfo => fetch(uri, requestInfo))
+      .then(resposta => resposta.json())
+      .then(comentario => [...foto.comentarios, comentario])
+      .then(novaLista => {
+        const fotoAtualizada = {
+          ...foto,
+          comentarios: novaLista
+        };
+
+        const fotos = this.atualizaFotos(fotoAtualizada);
+        console.warn(fotos);
+        this.setState({ fotos });
+        inputComentario.clear();
+      })
+      .catch(err => alert(err));
+  };
+
   render() {
     return (
       <View>
@@ -103,7 +135,11 @@ export default class Feed extends Component {
           keyExtractor={item => item.id + ""}
           data={this.state.fotos}
           renderItem={({ item }) => (
-            <Post foto={item} likeCallback={this.like} />
+            <Post
+              foto={item}
+              likeCallback={this.like}
+              comentarioCallback={this.adicionaComentario}
+            />
           )}
         />
       </View>

@@ -15,28 +15,28 @@ export default class Post extends Component {
     };
   }
 
-  adicionaComentario = (idFoto, valorComentario, inputComentario) => {
-    if (!valorComentario) return;
+  // adicionaComentario = (idFoto, valorComentario, inputComentario) => {
+  //   if (!valorComentario) return;
 
-    const foto = this.buscaPorId(idFoto);
+  //   const foto = this.buscaPorId(idFoto);
 
-    const novaLista = [
-      ...foto.comentarios,
-      {
-        id: valorComentario,
-        login: "meuUsuario",
-        texto: valorComentario
-      }
-    ];
+  //   const novaLista = [
+  //     ...foto.comentarios,
+  //     {
+  //       id: valorComentario,
+  //       login: "meuUsuario",
+  //       texto: valorComentario
+  //     }
+  //   ];
 
-    const fotoAtualizada = {
-      ...this.state.foto,
-      comentarios: novaLista
-    };
+  //   const fotoAtualizada = {
+  //     ...this.state.foto,
+  //     comentarios: novaLista
+  //   };
 
-    this.setState({ foto: fotoAtualizada });
-    inputComentario.clear();
-  };
+  //   this.setState({ foto: fotoAtualizada });
+  //   inputComentario.clear();
+  // };
 
   exibeLikes(likers) {
     if (likers.length <= 0) return;
@@ -80,7 +80,10 @@ export default class Post extends Component {
           </View>
         ))}
 
-        <InputComentario comentarioCallback={this.adicionaComentario} />
+        <InputComentario
+          idFoto={foto.id}
+          comentarioCallback={this.props.comentarioCallback}
+        />
       </View>
     );
   }
