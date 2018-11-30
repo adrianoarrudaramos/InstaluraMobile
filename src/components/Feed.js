@@ -183,7 +183,7 @@ export default class Feed extends Component {
   render() {
     return (
       <View>
-        <Button title="Sair" onPress={this.logout} />
+        <Button title="Sair bla" onPress={this.logout} />
         {this.exibeHeader()}
         <FlatList
           style={styles.container}
