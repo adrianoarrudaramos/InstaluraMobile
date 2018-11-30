@@ -4,8 +4,11 @@ import { Dimensions } from "react-native";
 
 import Post from "./Post";
 import InstaluraFetchService from "../service/InstaluraFetchService";
+import PropTypes from "prop-types";
 
-import Notificacao from "../api/Notificacao.android";
+import Notificacao from "../api/Notificacao";
+
+import HeaderUsuario from "./HeaderUsuario";
 
 const width = Dimensions.get("screen").width;
 
@@ -41,7 +44,7 @@ export default class Feed extends Component {
   }
 
   like = async idFoto => {
-    const listaOriginal = this.state.fotos;
+    // const listaOriginal = this.state.fotos;
     const foto = this.buscaPorId(idFoto);
 
     let usuarioLogado = await AsyncStorage.getItem("usuario");
@@ -60,12 +63,13 @@ export default class Feed extends Component {
       likeada: !foto.likeada,
       likers: novaLista
     };
+    console.warn(fotoAtualizada);
     this.atualizaFotos(fotoAtualizada);
 
-    InstaluraFetchService.post(`/fotos/${idFoto}/like`).catch(e => {
+    InstaluraFetchService.post(`/fotos/${idFoto}/like`).catch(() => {
       Notificacao.exibe("Ops..", "Algo deu errado ao curtir");
     });
-
+    /*
     const uri = `https://instalura-api.herokuapp.com/api/fotos/${idFoto}/like`;
 
     let token = await AsyncStorage.getItem("token");
@@ -76,6 +80,7 @@ export default class Feed extends Component {
         "X-AUTH-TOKEN": token
       })
     });
+    */
   };
 
   buscaPorId = idFoto => {
@@ -83,9 +88,10 @@ export default class Feed extends Component {
   };
 
   atualizaFotos = fotoAtualizada => {
-    return this.state.fotos.map(foto =>
+    const fotos = this.state.fotos.map(foto =>
       foto.id === fotoAtualizada.id ? fotoAtualizada : foto
     );
+    this.setState({ fotos });
   };
 
   logout = () => {
@@ -98,7 +104,7 @@ export default class Feed extends Component {
   };
 
   adicionaComentario = (idFoto, valorComentario, inputComentario) => {
-    const listaOriginal = this.state.fotos;
+    // const listaOriginal = this.state.fotos;
 
     if (!valorComentario) return;
     const foto = this.buscaPorId(idFoto);
@@ -148,15 +154,37 @@ export default class Feed extends Component {
         this.atualizaFotos(fotoAtualizada);
         inputComentario.clear();
       })
-      .catch(e => {
+      .catch(() => {
         Notificacao.exibe("Ops..", "Algo deu errado ao comentar");
       });
   };
+
+  verPerfilUsuario = idFoto => {
+    const foto = this.buscaPorId(idFoto);
+    this.props.navigator.push({
+      screen: "PerfilUsuario",
+      title: foto.loginUsuario,
+      backButtonTitle: "",
+      passProps: {
+        usuario: foto.loginUsuario,
+        fotoDePerfil: foto.urlPerfil
+      }
+    });
+  };
+
+  exibeHeader() {
+    if (this.props.usuario) {
+      return (
+        <HeaderUsuario {...this.props} fotoDePerfil={this.state.fotos.length} />
+      );
+    }
+  }
 
   render() {
     return (
       <View>
         <Button title="Sair" onPress={this.logout} />
+        {this.exibeHeader()}
         <FlatList
           style={styles.container}
           keyExtractor={item => item.id + ""}
@@ -166,6 +194,7 @@ export default class Feed extends Component {
               foto={item}
               likeCallback={this.like}
               comentarioCallback={this.adicionaComentario}
+              verPerfilCallback={this.verPerfilUsuario}
             />
           )}
         />
@@ -194,3 +223,7 @@ const styles = StyleSheet.create({
     height: width
   }
 });
+
+Feed.propTypes = {
+  navigator: PropTypes.object
+};

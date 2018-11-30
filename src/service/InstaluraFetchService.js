@@ -38,6 +38,7 @@ export default class InstaluraFetchService {
       .then(resposta => {
         if (resposta.ok) return resposta.json();
         throw new Error("Não foi possível completar a operação");
-      });
+      })
+      .catch(err => console.warn(err));
   }
 }
